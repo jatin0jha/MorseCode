@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morse Code Translator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1F1F1F;
+            color: white;
+
+        }
+
+        label {
+            margin: 10px;
+            font-weight: bold;
+        }
+
+        textarea {
+            height: 150px;
+            margin: 10px;
+            padding: 10px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .box-waala {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .box-waala label {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgb(127, 127, 127);
+        }
+
+        #switchButton {
+            height: min-content;
+            padding: 10px 0;
+            background-color: transparent;
+            border: none;
+            outline: none;
+        }
+
+        .box-waala textarea {
+            background-color: transparent;
+            border-radius: 10px;
+            outline: none;
+            border: none;
+            color: white;
+        }
+
+        #outputText {
+            background-color: #303134;
+        }
+
+        .copyButton {
+            border-radius: 30px;
+            padding: 8px 20px;
+            border: none;
+            outline: none;
+            background-color: #4f4f4f;
+            color: white;
+        }
+
+        .main-grid-ihope {
+            display: grid;
+            grid-template-columns: 1fr 50px 1fr;
+        }
+
+        @media (max-width: 502px) {
+
+            .main-grid-ihope {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h1>Morse Code Translator</h1>
+        <div class="main-grid-ihope">
+            <div class="box-waala">
+                <label id="inputLabel" for="inputText">Text</label>
+                <textarea id="inputText" placeholder="Enter text"></textarea>
+            </div>
+            <button id="switchButton" onclick="switchMode()"><img src="https://www.svgrepo.com/show/520720/exchange.svg"
+                    height="25px" style="filter: invert(1);" alt=""></button>
+            <div class="box-waala">
+                <label id="outputLabel" for="outputText">Morse</label>
+                <textarea id="outputText" readonly placeholder="Translation"></textarea>
+                <div style="justify-content: right; display: flex;"><button id="copyButton" class="copyButton"
+                        onclick="copyText()">Copy</button></div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 70%; margin: 0 auto;">
+                <hr style="border: 0.5px solid #757575;">
+            </div> &#160;&#160;&#160;<p style="display: flex; width: max-content;">Made with ♥ by Ded</p>
+        </div>
+    </div>
+
+
+    <script>// Morse code dictionary
+        const morseCode = {
+            'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.',
+            'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---',
+            'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---',
+            'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-',
+            'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--',
+            'Z': '--..',
+            '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+            '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+            '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.',
+            '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-',
+            '&': '.-...', ':': '---...', ';': '-.-.-.', '=': '-...-',
+            '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.',
+            '$': '...-..-', '@': '.--.-.', ' ': '/',
+        };
+
+        const reverseMorseCode = Object.keys(morseCode).reduce((acc, key) => {
+            acc[morseCode[key]] = key;
+            return acc;
+        }, {});
+
+        let isTextToMorse = true;
+
+        // Function to switch translation mode
+        function switchMode() {
+            isTextToMorse = !isTextToMorse;
+            document.getElementById('inputLabel').innerText = isTextToMorse ? "Text" : "Morse";
+            document.getElementById('outputLabel').innerText = isTextToMorse ? "Morse" : "Text";
+            document.getElementById('inputText').placeholder = isTextToMorse ? "Enter text" : "Enter Morse code";
+            translate();
+        }
+
+        // Function to translate based on the current mode
+        function translate() {
+            const inputText = document.getElementById('inputText').value;
+            const outputText = isTextToMorse ? textToMorse(inputText) : morseToText(inputText);
+            document.getElementById('outputText').value = outputText;
+        }
+
+        // Function to convert text to Morse code
+        function textToMorse(text) {
+            return text.toUpperCase().split('').map(char => morseCode[char] || '').join(' ');
+        }
+
+        // Function to convert Morse code to text
+        function morseToText(morse) {
+            return morse.trim().split(' ').map(code => reverseMorseCode[code] || '').join('').replace(/\//g, ' ');
+        }
+
+        // Event listener for dynamic translation
+        document.getElementById('inputText').addEventListener('input', translate);
+
+        // Function to copy the translated text to clipboard
+        function copyText() {
+            const outputText = document.getElementById('outputText');
+            outputText.select();
+            outputText.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                document.execCommand("copy");
+
+                // Change button text to "Copied"
+                const copyButton = document.getElementById('copyButton');
+                const originalText = copyButton.innerText;
+                copyButton.innerText = "Copied";
+
+                // Revert the button text back to original after 2 seconds
+                setTimeout(() => {
+                    copyButton.innerText = originalText;
+                }, 2000);
+            } catch (err) {
+                alert("Failed to copy text.");
+            }
+        }
+
+    </script>
+</body>
+
+</html>
