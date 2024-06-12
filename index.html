@@ -80,6 +80,14 @@
             grid-template-columns: 1fr 50px 1fr;
         }
 
+        #audioButton{
+            padding: 0;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            filter: invert(1);
+        }
+
         @media (max-width: 502px) {
 
             .main-grid-ihope {
@@ -103,8 +111,10 @@
             <div class="box-waala">
                 <label id="outputLabel" for="outputText">Morse</label>
                 <textarea id="outputText" readonly placeholder="Translation"></textarea>
-                <div style="justify-content: right; display: flex;"><button id="copyButton" class="copyButton"
-                        onclick="copyText()">Copy</button></div>
+                <div style="justify-content: right; display: flex; align-items: center;">
+                    <button id="audioButton" class="audioButton" onclick="playMorseAudio()"><img src="https://www.svgrepo.com/show/496819/audio-square.svg" height="30px" alt=""></button>
+                    <button id="copyButton" class="copyButton" onclick="copyText()">Copy</button>
+                </div>
             </div>
         </div>
         <div style="display: flex; align-items: center;">
@@ -115,81 +125,133 @@
     </div>
 
 
-    <script>// Morse code dictionary
-        const morseCode = {
-            'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.',
-            'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---',
-            'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---',
-            'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-',
-            'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--',
-            'Z': '--..',
-            '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-',
-            '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
-            '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.',
-            '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-',
-            '&': '.-...', ':': '---...', ';': '-.-.-.', '=': '-...-',
-            '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.',
-            '$': '...-..-', '@': '.--.-.', ' ': '/',
-        };
+    <script>
+        // Morse code dictionary
+const morseCode = {
+    'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.',
+    'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---',
+    'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---',
+    'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-',
+    'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--',
+    'Z': '--..',
+    '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+    '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+    '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.',
+    '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-',
+    '&': '.-...', ':': '---...', ';': '-.-.-.', '=': '-...-',
+    '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.',
+    '$': '...-..-', '@': '.--.-.', ' ': '/',
+};
 
-        const reverseMorseCode = Object.keys(morseCode).reduce((acc, key) => {
-            acc[morseCode[key]] = key;
-            return acc;
-        }, {});
+const reverseMorseCode = Object.keys(morseCode).reduce((acc, key) => {
+    acc[morseCode[key]] = key;
+    return acc;
+}, {});
 
-        let isTextToMorse = true;
+let isTextToMorse = true;
 
-        // Function to switch translation mode
-        function switchMode() {
-            isTextToMorse = !isTextToMorse;
-            document.getElementById('inputLabel').innerText = isTextToMorse ? "Text" : "Morse";
-            document.getElementById('outputLabel').innerText = isTextToMorse ? "Morse" : "Text";
-            document.getElementById('inputText').placeholder = isTextToMorse ? "Enter text" : "Enter Morse code";
-            translate();
+// Function to switch translation mode
+function switchMode() {
+    isTextToMorse = !isTextToMorse;
+    document.getElementById('inputLabel').innerText = isTextToMorse ? "Text" : "Morse";
+    document.getElementById('outputLabel').innerText = isTextToMorse ? "Morse" : "Text";
+    document.getElementById('inputText').placeholder = isTextToMorse ? "Enter text" : "Enter Morse code";
+    translate();
+}
+
+// Function to translate based on the current mode
+function translate() {
+    const inputText = document.getElementById('inputText').value;
+    const outputText = isTextToMorse ? textToMorse(inputText) : morseToText(inputText);
+    document.getElementById('outputText').value = outputText;
+}
+
+// Function to convert text to Morse code
+function textToMorse(text) {
+    return text.toUpperCase().split('').map(char => morseCode[char] || '').join(' ');
+}
+
+// Function to convert Morse code to text
+function morseToText(morse) {
+    return morse.trim().split(' ').map(code => reverseMorseCode[code] || '').join('').replace(/\//g, ' ');
+}
+
+// Event listener for dynamic translation
+document.getElementById('inputText').addEventListener('input', translate);
+
+// Function to copy the translated text to clipboard
+function copyText() {
+    const outputText = document.getElementById('outputText');
+    outputText.select();
+    outputText.setSelectionRange(0, 99999); // For mobile devices
+
+    try {
+        document.execCommand("copy");
+
+        // Change button text to "Copied"
+        const copyButton = document.getElementById('copyButton');
+        const originalText = copyButton.innerText;
+        copyButton.innerText = "Copied";
+
+        // Revert the button text back to original after 2 seconds
+        setTimeout(() => {
+            copyButton.innerText = originalText;
+        }, 2000);
+    } catch (err) {
+        alert("Failed to copy text.");
+    }
+}
+
+// Function to play Morse code audio
+function playMorseAudio() {
+    const outputText = document.getElementById('outputText').value;
+    if (!outputText) return;
+
+    const dotDuration = 0.1; // duration of dot in seconds
+    const dashDuration = dotDuration * 3; // duration of dash in seconds
+    const gapBetweenElements = dotDuration; // gap between dots and dashes in seconds
+    const gapBetweenLetters = dotDuration * 3; // gap between letters in seconds
+    const gapBetweenWords = dotDuration * 7; // gap between words in seconds
+
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = context.createOscillator();
+    oscillator.type = 'sine'; // or 'square'
+    oscillator.frequency.setValueAtTime(600, context.currentTime); // frequency in Hz
+    const gainNode = context.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+    oscillator.start();
+
+    let currentTime = context.currentTime;
+
+    for (let char of outputText) {
+        switch (char) {
+            case '.':
+                gainNode.gain.setValueAtTime(1, currentTime);
+                currentTime += dotDuration;
+                gainNode.gain.setValueAtTime(0, currentTime);
+                currentTime += gapBetweenElements;
+                break;
+            case '-':
+                gainNode.gain.setValueAtTime(1, currentTime);
+                currentTime += dashDuration;
+                gainNode.gain.setValueAtTime(0, currentTime);
+                currentTime += gapBetweenElements;
+                break;
+            case ' ':
+                currentTime += gapBetweenLetters;
+                break;
+            case '/':
+                currentTime += gapBetweenWords;
+                break;
+            default:
+                currentTime += gapBetweenElements;
+                break;
         }
+    }
 
-        // Function to translate based on the current mode
-        function translate() {
-            const inputText = document.getElementById('inputText').value;
-            const outputText = isTextToMorse ? textToMorse(inputText) : morseToText(inputText);
-            document.getElementById('outputText').value = outputText;
-        }
-
-        // Function to convert text to Morse code
-        function textToMorse(text) {
-            return text.toUpperCase().split('').map(char => morseCode[char] || '').join(' ');
-        }
-
-        // Function to convert Morse code to text
-        function morseToText(morse) {
-            return morse.trim().split(' ').map(code => reverseMorseCode[code] || '').join('').replace(/\//g, ' ');
-        }
-
-        // Event listener for dynamic translation
-        document.getElementById('inputText').addEventListener('input', translate);
-
-        // Function to copy the translated text to clipboard
-        function copyText() {
-            const outputText = document.getElementById('outputText');
-            outputText.select();
-            outputText.setSelectionRange(0, 99999); // For mobile devices
-
-            try {
-                document.execCommand("copy");
-
-                // Change button text to "Copied"
-                const copyButton = document.getElementById('copyButton');
-                const originalText = copyButton.innerText;
-                copyButton.innerText = "Copied";
-
-                // Revert the button text back to original after 2 seconds
-                setTimeout(() => {
-                    copyButton.innerText = originalText;
-                }, 2000);
-            } catch (err) {
-                alert("Failed to copy text.");
-            }
-        }
+    oscillator.stop(currentTime);
+}
 
     </script>
 </body>
